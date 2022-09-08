@@ -6,8 +6,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type Quote struct {
-	Quote string `json:"quote"`
+type quote struct {
+	Quote  string `json:"quote"`
+	Author string `json:"author"`
+}
+
+func main() {
+	r := gin.Default()
+	r.GET("/quotes", getQuote)
+	r.Run("localhost:8080")
+}
+
+func getQuote(c *gin.Context) {
+	c.IndentedJSON(http.StatusOK, quotes)
 }
 
 var quotes = []quote{
@@ -19,14 +30,4 @@ var quotes = []quote{
 	{Author: "Dmitri Shuralyov", Quote: "Single spaces between spaces."},
 	{Author: "Dmitri Shuralyov", Quote: "Avoid unused method receiver names."},
 	{Author: "Dmitri Shuralyov", Quote: "Comments for humans always have a single space after the slashes."},
-}
-
-func main() {
-	r := gin.Default()
-	r.GET("/quotes", getQuote())
-	r.Run("localhost:8080")
-}
-
-func getQuote(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, quotes)
 }
