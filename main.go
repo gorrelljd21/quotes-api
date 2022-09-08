@@ -1,7 +1,9 @@
 package main
 
 import (
+	"math/rand"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,12 +15,19 @@ type quote struct {
 
 func main() {
 	r := gin.Default()
-	r.GET("/quotes", getQuote)
+	r.GET("/quote", getRandomQuote)
 	r.Run("localhost:8080")
 }
 
 func getQuote(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, quotes)
+}
+
+func getRandomQuote(c *gin.Context) {
+	rand.Seed(time.Now().UnixNano())
+	randNum := rand.Intn(len(quotes))
+	randQuote := quotes[randNum]
+	c.IndentedJSON(http.StatusOK, randQuote)
 }
 
 var quotes = []quote{
