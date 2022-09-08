@@ -3,11 +3,13 @@
 The canvas on which to paint your art
 
 # Short term urgent needs
-- Implement a go HTTP server using git
+- Implement a go HTTP server using gin
 
 - It should listen on /quotes and respond to GET with a single random quote
 
-- Those quotes should be from the following sites. Add a minimum of 5 and a maximum of 20.[Go Proverbs](https://go-proverbs.github.io) [Go Idioms](https://dmitri.shuralyov.com/idiomatic-go)
+- Those quotes should be from the following sites. Add a minimum of 5 and a maximum of 20.
+  - [Go Proverbs](https://go-proverbs.github.io) 
+  -[Go Idioms](https://dmitri.shuralyov.com/idiomatic-go)
 
 - The json response from your API should match this syntax.
 ```json
