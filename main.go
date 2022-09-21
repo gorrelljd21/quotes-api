@@ -23,45 +23,71 @@ func main() {
 }
 
 func getRandomQuote(c *gin.Context) {
-	quoteSlice := []string{}
 
-	for k := range mapOfQuotes {
-		quoteSlice = append(quoteSlice, k)
+	apiKeySlice := c.Request.Header["X-Api-Key"]
+	apiKeyString := apiKeySlice[0]
+
+	if apiKeyString == "COCKTAILSAUCE" {
+
+		quoteSlice := []string{}
+
+		for k := range mapOfQuotes {
+			quoteSlice = append(quoteSlice, k)
+		}
+
+		randNum := rand.Intn(len(quoteSlice))
+		randKey := quoteSlice[randNum]
+		randQuote := mapOfQuotes[randKey]
+		c.JSON(http.StatusOK, randQuote)
+	} else {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "401"})
 	}
-
-	randNum := rand.Intn(len(quoteSlice))
-	randKey := quoteSlice[randNum]
-	randQuote := mapOfQuotes[randKey]
-	c.JSON(http.StatusOK, randQuote)
 }
 
 func getQuoteById(c *gin.Context) {
-	id := c.Param("id")
 
-	quote, exists := mapOfQuotes[id]
+	apiKeySlice := c.Request.Header["X-Api-Key"]
+	apiKeyString := apiKeySlice[0]
 
-	if exists {
-		c.JSON(http.StatusOK, quote)
-		return
+	if apiKeyString == "COCKTAILSAUCE" {
+		id := c.Param("id")
+
+		quote, exists := mapOfQuotes[id]
+
+		if exists {
+			c.JSON(http.StatusOK, quote)
+			return
+		}
+		c.JSON(http.StatusNotFound, gin.H{"message": "quote not found"})
+	} else {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "401"})
 	}
-	c.JSON(http.StatusNotFound, gin.H{"message": "quote not found"})
+
 }
 
 func addQuote(c *gin.Context) {
-	var newQuote quote
 
-	if err := c.BindJSON(&newQuote); err != nil {
-		return
-	}
+	apiKeySlice := c.Request.Header["X-Api-Key"]
+	apiKeyString := apiKeySlice[0]
 
-	newUUID := uuid.New()
-	newQuote.ID = newUUID.String()
+	if apiKeyString == "COCKTAILSAUCE" {
+		var newQuote quote
 
-	if len(newQuote.Quote) < 3 || len(newQuote.Author) < 3 {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "invalid input"})
+		if err := c.BindJSON(&newQuote); err != nil {
+			return
+		}
+
+		newUUID := uuid.New()
+		newQuote.ID = newUUID.String()
+
+		if len(newQuote.Quote) < 3 || len(newQuote.Author) < 3 {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid input"})
+		} else {
+			mapOfQuotes[newQuote.ID] = newQuote
+			c.JSON(http.StatusCreated, newQuote)
+		}
 	} else {
-		mapOfQuotes[newQuote.ID] = newQuote
-		c.JSON(http.StatusCreated, newQuote)
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "401"})
 	}
 }
 
