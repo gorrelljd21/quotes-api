@@ -28,7 +28,6 @@ func getRandomQuote(c *gin.Context) {
 	apiKeyString := apiKeySlice[0]
 
 	if apiKeyString == "COCKTAILSAUCE" {
-
 		quoteSlice := []string{}
 
 		for k := range mapOfQuotes {
