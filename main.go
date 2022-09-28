@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math/rand"
 	"net/http"
 
@@ -14,41 +15,50 @@ type quote struct {
 	Author string `json:"author"`
 }
 
+type ID struct {
+	ID string `json:"id"`
+}
+
 func main() {
 	r := gin.Default()
 	r.GET("/quotes", getRandomQuote)
 	r.GET("/quotes/:id", getQuoteById)
-	r.POST("/newQuote", addQuote)
+	r.POST("/quotes", addQuote)
 	r.Run("0.0.0.0:8080")
 }
 
+func manageHeader(c *gin.Context) bool {
+	headers := c.Request.Header
+	header, exists := headers["X-Api-Key"]
+	fmt.Println(header)
+
+	if exists {
+		if header[0] == "COCKTAILSAUCE" {
+			return true
+		}
+	}
+	return false
+}
+
 func getRandomQuote(c *gin.Context) {
+	quoteSlice := []string{}
 
-	apiKeySlice := c.Request.Header["X-Api-Key"]
-	apiKeyString := apiKeySlice[0]
-
-	if apiKeyString == "COCKTAILSAUCE" {
-		quoteSlice := []string{}
-
+	if manageHeader(c) {
 		for k := range mapOfQuotes {
 			quoteSlice = append(quoteSlice, k)
 		}
-
 		randNum := rand.Intn(len(quoteSlice))
 		randKey := quoteSlice[randNum]
 		randQuote := mapOfQuotes[randKey]
 		c.JSON(http.StatusOK, randQuote)
-	} else {
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "401"})
+	} else if !manageHeader(c) {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "unauthorized"})
 	}
 }
 
 func getQuoteById(c *gin.Context) {
 
-	apiKeySlice := c.Request.Header["X-Api-Key"]
-	apiKeyString := apiKeySlice[0]
-
-	if apiKeyString == "COCKTAILSAUCE" {
+	if manageHeader(c) {
 		id := c.Param("id")
 
 		quote, exists := mapOfQuotes[id]
@@ -58,19 +68,16 @@ func getQuoteById(c *gin.Context) {
 			return
 		}
 		c.JSON(http.StatusNotFound, gin.H{"message": "quote not found"})
-	} else {
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "401"})
+	} else if !manageHeader(c) {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "unauthorized"})
 	}
-
 }
 
 func addQuote(c *gin.Context) {
 
-	apiKeySlice := c.Request.Header["X-Api-Key"]
-	apiKeyString := apiKeySlice[0]
-
-	if apiKeyString == "COCKTAILSAUCE" {
+	if manageHeader(c) {
 		var newQuote quote
+		var newID ID
 
 		if err := c.BindJSON(&newQuote); err != nil {
 			return
@@ -78,15 +85,18 @@ func addQuote(c *gin.Context) {
 
 		newUUID := uuid.New()
 		newQuote.ID = newUUID.String()
+		newID.ID = newUUID.String()
 
 		if len(newQuote.Quote) < 3 || len(newQuote.Author) < 3 {
 			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid input"})
+			return
 		} else {
 			mapOfQuotes[newQuote.ID] = newQuote
-			c.JSON(http.StatusCreated, newQuote)
+			c.JSON(http.StatusCreated, newID)
+
 		}
-	} else {
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "401"})
+	} else if !manageHeader(c) {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "unauthorized"})
 	}
 }
 
