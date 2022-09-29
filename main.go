@@ -2,11 +2,17 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 	"net/http"
+	"os"
+
+	"database/sql"
+	_ "database/sql"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
 type quote struct {
@@ -25,6 +31,47 @@ func main() {
 	r.GET("/quotes/:id", getQuoteById)
 	r.POST("/quotes", addQuote)
 	r.Run("0.0.0.0:8080")
+}
+
+// func databaseConnection() {
+// 	// databasePassword = os.Getenv("DSN_ENV")
+
+// 	databasePassword := "postgress://gorrelljd21:DSN_ENV@34.70.139.133:5432/postgres"
+
+// 	dbPool, err := pgx.Connect(context.Background(), databasePassword)
+
+// 	if err != nil {
+// 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
+// 	}
+
+// 	defer dbPool.Close(context.Background())
+// }
+
+func databaseConnection() (*sql.DB, error) {
+	mustGetenv := func(dns string) string {
+		gettingEnv := os.Getenv(dns)
+		if gettingEnv == "" {
+			log.Fatalf("Warning: %s environment variable not set", dns)
+		}
+		return gettingEnv
+	}
+
+	var (
+		dbUser         = os.Getenv("DB_USER") //gorrelljd21
+		dbPwd          = mustGetenv("DNS_ENV")
+		dbName         = mustGetenv("DB_NAME")              //quotes_database
+		unixSocketPath = mustGetenv("INSTANCE_UNIX_SOCKET") //jessie-apprentice:us-central1:quotes-database
+	)
+
+	dbURI := fmt.Sprintf("user=%s password=%s database=%s host=%s", dbUser, dbPwd, dbName, unixSocketPath)
+
+	//dbPool is the pool of database connections
+	dbPool, err := sql.Open("pgx", dbURI)
+	if err != nil {
+		return nil, fmt.Errorf("sql.Open: %v", err)
+	}
+
+	return dbPool, err
 }
 
 func manageHeader(c *gin.Context) bool {
