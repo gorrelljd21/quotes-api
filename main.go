@@ -8,7 +8,7 @@ import (
 	"os"
 
 	"database/sql"
-	_ "database/sql"
+	// _ "database/sql"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -25,29 +25,23 @@ type ID struct {
 	ID string `json:"id"`
 }
 
+var db *sql.DB
+
 func main() {
+	err := databaseConnection()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	r := gin.Default()
 	r.GET("/quotes", getRandomQuote)
-	r.GET("/quotes/:id", getQuoteById)
+	// r.GET("/quotes/:id", getQuoteById)
+	r.GET("/quotes/:id", getQuoteByIdSQL)
 	r.POST("/quotes", addQuote)
 	r.Run("0.0.0.0:8080")
 }
 
-// func databaseConnection() {
-// 	// databasePassword = os.Getenv("DSN_ENV")
-
-// 	databasePassword := "postgress://gorrelljd21:DSN_ENV@34.70.139.133:5432/postgres"
-
-// 	dbPool, err := pgx.Connect(context.Background(), databasePassword)
-
-// 	if err != nil {
-// 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
-// 	}
-
-// 	defer dbPool.Close(context.Background())
-// }
-
-func databaseConnection() (*sql.DB, error) {
+func databaseConnection() error {
 	mustGetenv := func(dns string) string {
 		gettingEnv := os.Getenv(dns)
 		if gettingEnv == "" {
@@ -58,20 +52,21 @@ func databaseConnection() (*sql.DB, error) {
 
 	var (
 		dbUser         = os.Getenv("DB_USER") //gorrelljd21
-		dbPwd          = mustGetenv("DNS_ENV")
+		dbPwd          = mustGetenv("DB_PWD")
 		dbName         = mustGetenv("DB_NAME")              //quotes_database
-		unixSocketPath = mustGetenv("INSTANCE_UNIX_SOCKET") //jessie-apprentice:us-central1:quotes-database
+		unixSocketPath = mustGetenv("INSTANCE_UNIX_SOCKET") // /cloudsql/jessie-apprentice:us-central1:quotes-database
 	)
 
 	dbURI := fmt.Sprintf("user=%s password=%s database=%s host=%s", dbUser, dbPwd, dbName, unixSocketPath)
 
 	//dbPool is the pool of database connections
-	dbPool, err := sql.Open("pgx", dbURI)
-	if err != nil {
-		return nil, fmt.Errorf("sql.Open: %v", err)
-	}
+	var err error
 
-	return dbPool, err
+	db, err = sql.Open("pgx", dbURI)
+	if err != nil {
+		return fmt.Errorf("sql.Open: %v", err)
+	}
+	return err
 }
 
 func manageHeader(c *gin.Context) bool {
@@ -103,22 +98,33 @@ func getRandomQuote(c *gin.Context) {
 	}
 }
 
-func getQuoteById(c *gin.Context) {
-
-	if manageHeader(c) {
-		id := c.Param("id")
-
-		quote, exists := mapOfQuotes[id]
-
-		if exists {
-			c.JSON(http.StatusOK, quote)
-			return
-		}
-		c.JSON(http.StatusNotFound, gin.H{"message": "quote not found"})
-	} else if !manageHeader(c) {
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "unauthorized"})
+func getQuoteByIdSQL(c *gin.Context) {
+	id := c.Param("id")
+	row := db.QueryRow("select id, phrase, author from quotes where id = %s", id)
+	q := &quote{}
+	err := row.Scan(q.ID, q.Author, q.Quote)
+	if err != nil {
+		log.Fatal(err)
 	}
+	c.JSON(http.StatusOK, q)
 }
+
+// func getQuoteById(c *gin.Context) {
+
+// 	if manageHeader(c) {
+// 		id := c.Param("id")
+
+// 		quote, exists := mapOfQuotes[id]
+
+// 		if exists {
+// 			c.JSON(http.StatusOK, quote)
+// 			return
+// 		}
+// 		c.JSON(http.StatusNotFound, gin.H{"message": "quote not found"})
+// 	} else if !manageHeader(c) {
+// 		c.JSON(http.StatusUnauthorized, gin.H{"message": "unauthorized"})
+// 	}
+// }
 
 func addQuote(c *gin.Context) {
 
