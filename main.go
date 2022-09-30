@@ -143,17 +143,21 @@ func addQuoteSQL(c *gin.Context) {
 			return
 		}
 
-		sqlStatement := `insert into quotes (id, phrase, author) values ($1, $2, $3)`
-		_, err := db.Exec(sqlStatement, &newID.ID, &q.Quote, &q.Author)
-		if err != nil {
-			log.Println(err)
-		}
-
 		if len(q.Quote) < 3 || len(q.Author) < 3 {
 			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid input"})
 			return
+
+		} else {
+			sqlStatement := `insert into quotes (id, phrase, author) values ($1, $2, $3)`
+			_, err := db.Exec(sqlStatement, &newID.ID, &q.Quote, &q.Author)
+
+			if err != nil {
+				log.Println(err)
+			}
+
+			c.JSON(http.StatusCreated, newID)
 		}
-		c.JSON(http.StatusCreated, newID)
+
 	} else if !manageHeader(c) {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "unauthorized"})
 	}
