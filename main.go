@@ -35,6 +35,7 @@ func main() {
 	r.GET("/quotes", getRandomQuoteSQL)
 	r.GET("/quotes/:id", getQuoteByIdSQL)
 	r.POST("/quotes", addQuoteSQL)
+	r.DELETE("/quotes/:id", deleteQuote)
 	r.Run("0.0.0.0:8080")
 }
 
@@ -77,6 +78,19 @@ func manageHeader(c *gin.Context) bool {
 		}
 	}
 	return false
+}
+
+func deleteQuote(c *gin.Context) {
+	id := c.Param("id")
+	row := db.QueryRow(fmt.Sprintf("delete from quotes where id = '%s'", id))
+	q := &quote{}
+	err := row.Scan(&q.ID, &q.Quote, &q.Author)
+
+	if err != nil {
+		log.Println(err)
+	}
+
+	c.JSON(http.StatusNoContent, q)
 }
 
 func getRandomQuoteSQL(c *gin.Context) {
