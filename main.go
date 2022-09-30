@@ -83,22 +83,25 @@ func manageHeader(c *gin.Context) bool {
 }
 
 func getRandomQuoteSQL(c *gin.Context) {
-	row := db.QueryRow("select id, phrase, author from quotes order by RANDOM() limit 1")
-	q := &quote{}
-	err := row.Scan(&q.ID, &q.Quote, &q.Author)
+	if manageHeader(c) {
+		row := db.QueryRow("select id, phrase, author from quotes order by RANDOM() limit 1")
+		q := &quote{}
+		err := row.Scan(&q.ID, &q.Quote, &q.Author)
 
-	if err != nil {
-		log.Println(err)
+		if err != nil {
+			log.Println(err)
+		}
+		c.JSON(http.StatusOK, q)
+		return
+	} else if !manageHeader(c) {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "unauthorized"})
 	}
-	c.JSON(http.StatusOK, q)
-	return
 }
 
-// TODO fix invalid id err handler
 func getQuoteByIdSQL(c *gin.Context) {
 	if manageHeader(c) {
 		id := c.Param("id")
-		row, exists := db.QueryRow(fmt.Sprintf("select id, phrase, author from quotes where id = '%s'", id)), true
+		row := db.QueryRow(fmt.Sprintf("select id, phrase, author from quotes where id = '%s'", id))
 		q := &quote{}
 		err := row.Scan(&q.ID, &q.Quote, &q.Author)
 
@@ -106,35 +109,43 @@ func getQuoteByIdSQL(c *gin.Context) {
 			log.Println(err)
 		}
 
-		if exists {
-			c.JSON(http.StatusOK, q)
-			return
-		} else if !exists {
+		if q.ID == "" {
 			c.JSON(http.StatusNotFound, gin.H{"message": "invalid ID"})
+			return
+		} else {
+			c.JSON(http.StatusOK, q)
 		}
+
 	} else if !manageHeader(c) {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "unauthorized"})
 	}
 }
 
-// TODO authentication
 func addQuoteSQL(c *gin.Context) {
-	var newID ID
-	q := &quote{}
+	if manageHeader(c) {
+		var newID ID
+		q := &quote{}
 
-	newID.ID = uuid.New().String()
+		newID.ID = uuid.New().String()
 
-	if flaw := c.BindJSON(&q); flaw != nil {
-		return
+		if flaw := c.BindJSON(&q); flaw != nil {
+			return
+		}
+
+		sqlStatement := `insert into quotes (id, phrase, author) values ($1, $2, $3)`
+		_, err := db.Exec(sqlStatement, &newID.ID, &q.Quote, &q.Author)
+		if err != nil {
+			log.Println(err)
+		}
+
+		if len(q.Quote) < 3 || len(q.Author) < 3 {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid input"})
+			return
+		}
+		c.JSON(http.StatusCreated, newID)
+	} else if !manageHeader(c) {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "unauthorized"})
 	}
-
-	sqlStatement := `insert into quotes (id, phrase, author) values ($1, $2, $3)`
-	_, err := db.Exec(sqlStatement, &newID.ID, &q.Quote, &q.Author)
-	if err != nil {
-		log.Println(err)
-	}
-
-	c.JSON(http.StatusCreated, newID)
 }
 
 // func addQuote(c *gin.Context) {
