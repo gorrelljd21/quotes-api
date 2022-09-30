@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"math/rand"
 	"net/http"
 	"os"
 
@@ -33,7 +32,8 @@ func main() {
 	}
 
 	r := gin.Default()
-	r.GET("/quotes", getRandomQuote)
+	// r.GET("/quotes", getRandomQuote)
+	r.GET("/quotes", getRandomQuoteSQL)
 	// r.GET("/quotes/:id", getQuoteById)
 	r.GET("/quotes/:id", getQuoteByIdSQL)
 	// r.POST("/quotes", addQuote)
@@ -82,20 +82,16 @@ func manageHeader(c *gin.Context) bool {
 	return false
 }
 
-func getRandomQuote(c *gin.Context) {
-	quoteSlice := []string{}
+func getRandomQuoteSQL(c *gin.Context) {
+	row := db.QueryRow("select id, phrase, author from quotes order by RANDOM() limit 1")
+	q := &quote{}
+	err := row.Scan(&q.ID, &q.Quote, &q.Author)
 
-	if manageHeader(c) {
-		for k := range mapOfQuotes {
-			quoteSlice = append(quoteSlice, k)
-		}
-		randNum := rand.Intn(len(quoteSlice))
-		randKey := quoteSlice[randNum]
-		randQuote := mapOfQuotes[randKey]
-		c.JSON(http.StatusOK, randQuote)
-	} else if !manageHeader(c) {
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "unauthorized"})
+	if err != nil {
+		log.Println(err)
 	}
+	c.JSON(http.StatusOK, q)
+	return
 }
 
 // TODO fix invalid id err handler
@@ -121,23 +117,22 @@ func getQuoteByIdSQL(c *gin.Context) {
 	}
 }
 
+// TODO authentication
 func addQuoteSQL(c *gin.Context) {
 	var newID ID
 	q := &quote{}
 
-	newQuote := `insert into quotes (id, phrase, author) values ($1, $2, $3)`
-	_, err := db.Exec(newQuote, &q.ID, &q.Quote, &q.Author)
-	if err != nil {
-		log.Println(err)
-	}
+	newID.ID = uuid.New().String()
 
 	if flaw := c.BindJSON(&q); flaw != nil {
 		return
 	}
 
-	newUUID := uuid.New()
-	q.ID = newUUID.String()
-	newID.ID = newUUID.String()
+	sqlStatement := `insert into quotes (id, phrase, author) values ($1, $2, $3)`
+	_, err := db.Exec(sqlStatement, &newID.ID, &q.Quote, &q.Author)
+	if err != nil {
+		log.Println(err)
+	}
 
 	c.JSON(http.StatusCreated, newID)
 }
@@ -191,6 +186,22 @@ var mapOfQuotes = map[string]quote{
 // 			return
 // 		}
 // 		c.JSON(http.StatusNotFound, gin.H{"message": "quote not found"})
+// 	} else if !manageHeader(c) {
+// 		c.JSON(http.StatusUnauthorized, gin.H{"message": "unauthorized"})
+// 	}
+// }
+
+// func getRandomQuote(c *gin.Context) {
+// 	quoteSlice := []string{}
+
+// 	if manageHeader(c) {
+// 		for k := range mapOfQuotes {
+// 			quoteSlice = append(quoteSlice, k)
+// 		}
+// 		randNum := rand.Intn(len(quoteSlice))
+// 		randKey := quoteSlice[randNum]
+// 		randQuote := mapOfQuotes[randKey]
+// 		c.JSON(http.StatusOK, randQuote)
 // 	} else if !manageHeader(c) {
 // 		c.JSON(http.StatusUnauthorized, gin.H{"message": "unauthorized"})
 // 	}
