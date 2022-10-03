@@ -13,25 +13,25 @@ import (
 	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
-type quote struct { //the point of this struct is to give JSON an id to look for in order to connect w the server
-	ID     string `json:"id"` // object name type and JSON endpoint
+type quote struct {
+	ID     string `json:"id"`
 	Quote  string `json:"quote"`
 	Author string `json:"author"`
 }
 
-type ID struct { //the point of this struct is to output just the id when a POST is used for a new quote
+type ID struct {
 	ID string `json:"id"`
 }
 
-var db *sql.DB // hoisted this so it could be used anywhere below it
+var db *sql.DB
 
-func main() { //the point of this function is to run the http requests
-	err := databaseConnection() //29-32 block will check to see if the connection is there or not
+func main() {
+	err := databaseConnection()
 	if err != nil {
 		log.Println(err)
 	}
 
-	r := gin.Default() //34-39 is scripting the endpoints and connecting the matching functions that do the work. it identifies what server locally it would run on (39)
+	r := gin.Default()
 	r.GET("/quotes", getRandomQuoteSQL)
 	r.GET("/quotes/:id", getQuoteByIdSQL)
 	r.POST("/quotes", addQuoteSQL)
@@ -39,42 +39,42 @@ func main() { //the point of this function is to run the http requests
 	r.Run("0.0.0.0:8080")
 }
 
-func databaseConnection() error { //the purpose of this function is to connect this golang code to cloud sql so it can read the database (the sql file is inputted within cloud sql)
-	mustGetenv := func(dns string) string { // we add this default func so that the env's below can be inputted and checked to see if they are set or not
-		gettingEnv := os.Getenv(dns) // this get the value from the env that is passed in
-		if gettingEnv == "" {        // checks to see if it's set or not
+func databaseConnection() error {
+	mustGetenv := func(dns string) string {
+		gettingEnv := os.Getenv(dns)
+		if gettingEnv == "" {
 			log.Printf("Warning: %s environment variable not set", dns)
 		}
-		return gettingEnv //if the env is there then return it
+		return gettingEnv
 	}
 
 	// when it returns the gettingEnv, is it returning it to cloud sql itself?
 
-	var ( //this sends the env to the default func to check if its there -- why is dbUser the only one to not have mustGetenv?
+	var (
 		dbUser         = os.Getenv("DB_USER") //postgres
 		dbPwd          = mustGetenv("DB_PWD")
 		dbName         = mustGetenv("DB_NAME")              //postgres
 		unixSocketPath = mustGetenv("INSTANCE_UNIX_SOCKET") // /cloudsql/jessie-apprentice:us-central1:quotes-database
 	)
 
-	dbURI := fmt.Sprintf("user=%s password=%s database=%s host=%s", dbUser, dbPwd, dbName, unixSocketPath) //this creates the path to print and show what database is being used, gives credentials
+	dbURI := fmt.Sprintf("user=%s password=%s database=%s host=%s", dbUser, dbPwd, dbName, unixSocketPath)
 
 	//dbPool is the pool of database connections
 	var err error
 
-	db, err = sql.Open("pgx", dbURI) //opens a database driver specific to the database being used. in this case, we are using the pgx engine and the path is the dbURI
-	if err != nil {                  //if it isn't correct or there, throw error
+	db, err = sql.Open("pgx", dbURI)
+	if err != nil {
 		return fmt.Errorf("sql.Open: %v", err)
 	}
 	return err
 }
 
-func manageHeader(c *gin.Context) bool { //this manages the authentication api key to ensure it equals cocktailsauce
-	headers := c.Request.Header            // this requests the list of headers to read it
-	header, exists := headers["X-Api-Key"] //this looks for the specific key we want
-	fmt.Println(header)                    //why do we need to print it?
+func manageHeader(c *gin.Context) bool {
+	headers := c.Request.Header
+	header, exists := headers["X-Api-Key"]
+	fmt.Println(header)
 
-	if exists { //makes sure the right key exists
+	if exists {
 		if header[0] == "COCKTAILSAUCE" {
 			return true
 		}
@@ -83,7 +83,7 @@ func manageHeader(c *gin.Context) bool { //this manages the authentication api k
 }
 
 func deleteQuote(c *gin.Context) {
-	id := c.Param("id") // what is the purpose of this?
+	id := c.Param("id")
 	row := db.QueryRow(fmt.Sprintf("delete from quotes where id = '%s'", id))
 	q := &quote{}
 	err := row.Scan(&q.ID, &q.Quote, &q.Author)
