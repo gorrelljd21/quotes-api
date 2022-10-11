@@ -1,0 +1,5 @@
+type Quote {
+    id: string
+    question: String
+    author: String
+}

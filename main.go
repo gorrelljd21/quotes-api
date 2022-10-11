@@ -48,8 +48,6 @@ func databaseConnection() error {
 		return gettingEnv
 	}
 
-	// when it returns the gettingEnv, is it returning it to cloud sql itself?
-
 	var (
 		dbUser         = os.Getenv("DB_USER") //postgres
 		dbPwd          = mustGetenv("DB_PWD")
