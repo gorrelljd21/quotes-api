@@ -10,3 +10,8 @@ type Quote {
 type Query {
   getQuotes: [Quote!]!
 }
+
+type Mutation {
+  createQuote(input: newQuote!): Quote!
+  deleteQuote(id:String!): String! 
+}
