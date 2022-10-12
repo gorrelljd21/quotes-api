@@ -1,5 +1,8 @@
 type Quote {
-    id: string
-    question: String
-    author: String
+    "the quote needs an id as a string (UUID format)"
+    id: string!
+    "each question will be a string"
+    question: String!
+    "each question will have an author"
+    author: String!
 }
