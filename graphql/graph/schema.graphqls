@@ -6,12 +6,3 @@ type Quote {
     "each quote needs an author"
     author: String!
 }
-
-type Query {
-  getQuotes: [Quote!]!
-}
-
-type Mutation {
-  createQuote(input: newQuote!): Quote!
-  deleteQuote(id:String!): String! 
-}
