@@ -1,8 +1,0 @@
-type Quote {
-    "id as string in UUID format"
-    id: string!
-    "quote as string type"
-    quote: String!
-    "each quote needs an author"
-    author: String!
-}
