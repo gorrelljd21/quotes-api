@@ -1,7 +1,3 @@
-# GraphQL schema example
-#
-# https://gqlgen.com/getting-started/
-
 type Quote {
     # "the quote needs an id as a string (UUID format)"
     id: String!
@@ -9,4 +5,8 @@ type Quote {
     quote: String!
     # "each question will have an author"
     author: String!
+}
+
+type Query {
+    quote: Quote
 }
