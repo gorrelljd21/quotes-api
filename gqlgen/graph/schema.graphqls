@@ -9,4 +9,5 @@ type Quote {
 
 type Query {
     quote: Quote
+    quoteId(id: String!): Quote 
 }

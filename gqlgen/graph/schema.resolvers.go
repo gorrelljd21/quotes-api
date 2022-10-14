@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -39,6 +40,32 @@ func (r *queryResolver) Quote(ctx context.Context) (*model.Quote, error) {
 		return nil, err
 	}
 	return randQuote, nil
+}
+
+// QuoteID is the resolver for the quoteId field.
+func (r *queryResolver) QuoteID(ctx context.Context, id string) (*model.Quote, error) {
+	request, err := http.NewRequest("GET", fmt.Sprintf("http://0.0.0.0:8080/quote/%s", id), nil)
+	request.Header.Set("x-api-key", "COCKTAILSAUCE")
+
+	if err != nil {
+		return nil, err
+	}
+
+	client := &http.Client{}
+	resp, _ := client.Do(request)
+
+	var quoteById *model.Quote
+	requestBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(requestBody, &quoteById)
+	if err != nil {
+		return nil, err
+	}
+
+	return quoteById, nil
 }
 
 // Query returns generated.QueryResolver implementation.
