@@ -6,11 +6,9 @@ package graph
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 
-	// "github.com/gin-gonic/gin"
 	"github.com/gorrelljd21/quotes-starter/gqlgen/graph/generated"
 	"github.com/gorrelljd21/quotes-starter/gqlgen/graph/model"
 )
@@ -19,24 +17,27 @@ import (
 func (r *queryResolver) Quote(ctx context.Context) (*model.Quote, error) {
 	var randQuote *model.Quote
 
-	response, err := http.Get("http://0.0.0.0:8080/quote")
+	request, err := http.NewRequest("GET", "http://0.0.0.0:8080/quote", nil)
+	request.Header.Set("x-api-key", "COCKTAILSAUCE")
 
 	if err != nil {
-		fmt.Print(err.Error())
+		return nil, err
 	}
 
-	responseBody, err := ioutil.ReadAll(response.Body)
+	client := &http.Client{}
+	resp, _ := client.Do(request)
+
+	requestBody, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
-		fmt.Print(err.Error())
+		return nil, err
 	}
 
-	err = json.Unmarshal(responseBody, &randQuote)
+	err = json.Unmarshal(requestBody, &randQuote)
 
 	if err != nil {
-		fmt.Print(err.Error())
+		return nil, err
 	}
-
 	return randQuote, nil
 }
 
