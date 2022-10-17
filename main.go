@@ -32,10 +32,10 @@ func main() {
 	}
 
 	r := gin.Default()
-	r.GET("/quotes", getRandomQuoteSQL)
-	r.GET("/quotes/:id", getQuoteByIdSQL)
-	r.POST("/quotes", addQuoteSQL)
-	r.DELETE("/quotes/:id", deleteQuote)
+	r.GET("/quote", getRandomQuoteSQL)
+	r.GET("/quote/:id", getQuoteByIdSQL)
+	r.POST("/quote", addQuoteSQL)
+	r.DELETE("/quote/:id", deleteQuote)
 	r.Run("0.0.0.0:8080")
 }
 

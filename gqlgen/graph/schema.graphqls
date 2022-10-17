@@ -1,0 +1,13 @@
+type Quote {
+    # "the quote needs an id as a string (UUID format)"
+    id: String!
+    # "each question will be a string"
+    quote: String!
+    # "each question will have an author"
+    author: String!
+}
+
+type Query {
+    quote: Quote
+    quoteId(id: String!): Quote 
+}
