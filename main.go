@@ -36,7 +36,7 @@ func main() {
 	r.GET("/quote/:id", getQuoteByIdSQL)
 	r.POST("/quote", addQuoteSQL)
 	r.DELETE("/quote/:id", deleteQuote)
-	r.Run("0.0.0.0:8081")
+	r.Run("0.0.0.0:8080")
 }
 
 func databaseConnection() error {
