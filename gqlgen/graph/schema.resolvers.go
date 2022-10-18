@@ -15,25 +15,30 @@ import (
 	"github.com/gorrelljd21/quotes-starter/gqlgen/graph/model"
 )
 
-// AddQuote is the resolver for the addQuote field.
+// AddQuote is the resolver for the addQuote field
 func (r *mutationResolver) InsertQuote(ctx context.Context, input model.NewQuote) (*model.Quote, error) {
+
 	quote := &model.Quote{
 		Quote:  input.Quote,
 		Author: input.Author,
 	}
 
-	response, err := json.Marshal(quote)
+	response, err := json.Marshal(&quote)
 	bufferResponse := bytes.NewBuffer(response)
 
 	request, err := http.NewRequest("POST", "http://0.0.0.0:8080/quote", bufferResponse)
-	request.Header.Set("x-api-key", "COCKTAILSAUCE")
+	request.Header.Set("X-Api-Key", "COCKTAILSAUCE")
+	// request.Header.Set("Content-Type", "application/json")
 
 	if err != nil {
 		return nil, err
 	}
 
-	otherResponse, err := ioutil.ReadAll(request.Body)
-	json.Unmarshal(otherResponse, &quote)
+	client := &http.Client{}
+	resp, _ := client.Do(request)
+
+	otherResponse, err := ioutil.ReadAll(resp.Body)
+	json.Unmarshal(otherResponse, quote)
 
 	return quote, nil
 }
