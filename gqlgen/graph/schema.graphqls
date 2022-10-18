@@ -1,0 +1,28 @@
+type Quote {
+    # "the quote needs an id as a string (UUID format)"
+    id: String!
+    # "each quote will be a string"
+    quote: String!
+    # "each quote will have an author"
+    author: String!
+}
+
+type Query {
+    quote: Quote
+    quoteId(id: String!): Quote 
+}
+
+input NewQuote {
+    quote: String!
+    author: String!
+}
+
+type DeleteQuote {
+    code: Int!
+    message: String!
+}
+
+type Mutation {
+    insertQuote(input: NewQuote!): Quote
+    deleteQuote(id: String!): DeleteQuote
+}
