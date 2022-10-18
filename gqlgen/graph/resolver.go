@@ -1,7 +1,6 @@
 package graph
 
 import (
-	"github.com/go-pg/pg/v10"
 	"github.com/gorrelljd21/quotes-starter/gqlgen/graph/model"
 )
 
@@ -11,5 +10,4 @@ import (
 
 type Resolver struct {
 	quote []*model.Quote
-	DB    *pg.DB
 }
