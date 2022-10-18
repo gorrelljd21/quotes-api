@@ -1,6 +1,9 @@
 package graph
 
-import "github.com/gorrelljd21/quotes-starter/gqlgen/graph/model"
+import (
+	"github.com/go-pg/pg/v10"
+	"github.com/gorrelljd21/quotes-starter/gqlgen/graph/model"
+)
 
 // This file will not be regenerated automatically.
 //
@@ -8,4 +11,5 @@ import "github.com/gorrelljd21/quotes-starter/gqlgen/graph/model"
 
 type Resolver struct {
 	quote []*model.Quote
+	DB    *pg.DB
 }

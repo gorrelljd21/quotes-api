@@ -11,8 +11,20 @@ require (
 )
 
 require (
+	github.com/go-pg/zerochecker v0.2.0 // indirect
+	github.com/jinzhu/inflection v1.0.0 // indirect
+	github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc // indirect
+	github.com/vmihailenco/bufpool v0.1.11 // indirect
+	github.com/vmihailenco/msgpack/v5 v5.3.4 // indirect
+	github.com/vmihailenco/tagparser v0.1.2 // indirect
+	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
+	mellium.im/sasl v0.2.1 // indirect
+)
+
+require (
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
+	github.com/go-pg/pg/v10 v10.10.7
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/go-playground/validator/v10 v10.10.0 // indirect

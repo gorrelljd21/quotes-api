@@ -13,5 +13,5 @@ type Query {
 }
 
 type Mutation {
-    addQuote(input: String!): Quote
+    insertQuote(input: newQuote!): Quote
 }

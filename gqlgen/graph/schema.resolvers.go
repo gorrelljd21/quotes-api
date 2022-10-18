@@ -10,13 +10,30 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/gofrs/uuid"
 	"github.com/gorrelljd21/quotes-starter/gqlgen/graph/generated"
 	"github.com/gorrelljd21/quotes-starter/gqlgen/graph/model"
 )
 
 // AddQuote is the resolver for the addQuote field.
-func (r *mutationResolver) AddQuote(ctx context.Context, input string) (*model.Quote, error) {
-	panic(fmt.Errorf("not implemented: AddQuote - addQuote"))
+func (r *mutationResolver) AddQuote(ctx context.Context, input model.newQuote) (*model.Quote, error) {
+	request, err := http.NewRequest("POST", "http://0.0.0.0:8080/quote", nil)
+	request.Header.Set("x-api-key", "COCKTAILSAUCE")
+
+	if err != nil {
+		return nil, err
+	}
+
+	client := &http.Client{}
+	resp, _ := client.Do(request)
+
+	quote := &model.Quote{
+		ID:     fmt.Sprintf("%v", uuid.NewV4()),
+		Quote:  input.Quote,
+		Author: input.Author,
+	}
+
+	return &quote, nil
 }
 
 // Quote is the resolver for the quote field.
