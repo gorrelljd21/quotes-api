@@ -19,4 +19,5 @@ input newQuote {
 
 type Mutation {
     insertQuote(input: newQuote!): Quote
+    deleteQuote(id: String!): Quote
 }
