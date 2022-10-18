@@ -43,8 +43,29 @@ func (r *mutationResolver) InsertQuote(ctx context.Context, input model.NewQuote
 }
 
 // DeleteQuote is the resolver for the deleteQuote field.
-func (r *mutationResolver) DeleteQuote(ctx context.Context, id string) (*model.Quote, error) {
-	panic(fmt.Errorf("not implemented: DeleteQuote - deleteQuote"))
+func (r *mutationResolver) DeleteQuote(ctx context.Context, id string) (*model.DeleteQuote, error) {
+	request, err := http.NewRequest("DELETE", fmt.Sprintf("http://34.160.90.176:80/quote/%s", id), nil)
+	request.Header.Set("X-Api-Key", "COCKTAILSAUCE")
+
+	if err != nil {
+		return nil, err
+	}
+
+	client := &http.Client{}
+	resp, _ := client.Do(request)
+
+	_, noResponse := ioutil.ReadAll(resp.Body)
+
+	if noResponse != nil {
+		return nil, noResponse
+	}
+
+	deleteQuote := &model.DeleteQuote{
+		Code:    204,
+		Message: "Successfully Deleted",
+	}
+
+	return deleteQuote, nil
 }
 
 // Quote is the resolver for the quote field.

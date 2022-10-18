@@ -12,12 +12,17 @@ type Query {
     quoteId(id: String!): Quote 
 }
 
-input newQuote {
+input NewQuote {
     quote: String!
     author: String!
 }
 
+type DeleteQuote {
+    code: Int!
+    message: String!
+}
+
 type Mutation {
-    insertQuote(input: newQuote!): Quote
-    deleteQuote(id: String!): Quote
+    insertQuote(input: NewQuote!): Quote
+    deleteQuote(id: String!): DeleteQuote
 }
