@@ -2,6 +2,16 @@
 
 package model
 
+type DeleteQuote struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
+
+type NewQuote struct {
+	Quote  string `json:"quote"`
+	Author string `json:"author"`
+}
+
 type Quote struct {
 	ID     string `json:"id"`
 	Quote  string `json:"quote"`

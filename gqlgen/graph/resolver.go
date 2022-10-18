@@ -1,6 +1,8 @@
 package graph
 
-import "github.com/gorrelljd21/quotes-starter/gqlgen/graph/model"
+import (
+	"github.com/gorrelljd21/quotes-starter/gqlgen/graph/model"
+)
 
 // This file will not be regenerated automatically.
 //
