@@ -12,6 +12,11 @@ type Query {
     quoteId(id: String!): Quote 
 }
 
+input newQuote {
+    quote: String!
+    author: String!
+}
+
 type Mutation {
     insertQuote(input: newQuote!): Quote
 }

@@ -44,7 +44,7 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Mutation struct {
-		AddQuote func(childComplexity int, input string) int
+		InsertQuote func(childComplexity int, input model.NewQuote) int
 	}
 
 	Query struct {
@@ -60,7 +60,7 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	AddQuote(ctx context.Context, input string) (*model.Quote, error)
+	InsertQuote(ctx context.Context, input model.NewQuote) (*model.Quote, error)
 }
 type QueryResolver interface {
 	Quote(ctx context.Context) (*model.Quote, error)
@@ -82,17 +82,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
-	case "Mutation.addQuote":
-		if e.complexity.Mutation.AddQuote == nil {
+	case "Mutation.insertQuote":
+		if e.complexity.Mutation.InsertQuote == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_addQuote_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_insertQuote_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddQuote(childComplexity, args["input"].(string)), true
+		return e.complexity.Mutation.InsertQuote(childComplexity, args["input"].(model.NewQuote)), true
 
 	case "Query.quote":
 		if e.complexity.Query.Quote == nil {
@@ -141,7 +141,9 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e}
-	inputUnmarshalMap := graphql.BuildUnmarshalerMap()
+	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputnewQuote,
+	)
 	first := true
 
 	switch rc.Operation.Operation {
@@ -215,8 +217,13 @@ type Query {
     quoteId(id: String!): Quote 
 }
 
+input newQuote {
+    quote: String!
+    author: String!
+}
+
 type Mutation {
-    addQuote(input: String!): Quote
+    insertQuote(input: newQuote!): Quote
 }`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -225,13 +232,13 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // region    ***************************** args.gotpl *****************************
 
-func (ec *executionContext) field_Mutation_addQuote_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_insertQuote_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 model.NewQuote
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		arg0, err = ec.unmarshalNnewQuote2githubᚗcomᚋgorrelljd21ᚋquotesᚑstarterᚋgqlgenᚋgraphᚋmodelᚐNewQuote(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -308,8 +315,8 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _Mutation_addQuote(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_addQuote(ctx, field)
+func (ec *executionContext) _Mutation_insertQuote(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_insertQuote(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -322,7 +329,7 @@ func (ec *executionContext) _Mutation_addQuote(ctx context.Context, field graphq
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddQuote(rctx, fc.Args["input"].(string))
+		return ec.resolvers.Mutation().InsertQuote(rctx, fc.Args["input"].(model.NewQuote))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -336,7 +343,7 @@ func (ec *executionContext) _Mutation_addQuote(ctx context.Context, field graphq
 	return ec.marshalOQuote2ᚖgithubᚗcomᚋgorrelljd21ᚋquotesᚑstarterᚋgqlgenᚋgraphᚋmodelᚐQuote(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_addQuote(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_insertQuote(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -361,7 +368,7 @@ func (ec *executionContext) fieldContext_Mutation_addQuote(ctx context.Context, 
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_addQuote_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_insertQuote_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -2511,6 +2518,42 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputnewQuote(ctx context.Context, obj interface{}) (model.NewQuote, error) {
+	var it model.NewQuote
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"quote", "author"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "quote":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("quote"))
+			it.Quote, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "author":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("author"))
+			it.Author, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -2538,10 +2581,10 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
-		case "addQuote":
+		case "insertQuote":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_addQuote(ctx, field)
+				return ec._Mutation_insertQuote(ctx, field)
 			})
 
 		default:
@@ -3278,6 +3321,11 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNnewQuote2githubᚗcomᚋgorrelljd21ᚋquotesᚑstarterᚋgqlgenᚋgraphᚋmodelᚐNewQuote(ctx context.Context, v interface{}) (model.NewQuote, error) {
+	res, err := ec.unmarshalInputnewQuote(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interface{}) (bool, error) {

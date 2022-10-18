@@ -4,36 +4,38 @@ package graph
 // will be copied through when generating and any unknown code will be moved to the end.
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 
-	"github.com/gofrs/uuid"
 	"github.com/gorrelljd21/quotes-starter/gqlgen/graph/generated"
 	"github.com/gorrelljd21/quotes-starter/gqlgen/graph/model"
 )
 
 // AddQuote is the resolver for the addQuote field.
-func (r *mutationResolver) AddQuote(ctx context.Context, input model.newQuote) (*model.Quote, error) {
-	request, err := http.NewRequest("POST", "http://0.0.0.0:8080/quote", nil)
+func (r *mutationResolver) InsertQuote(ctx context.Context, input model.NewQuote) (*model.Quote, error) {
+	quote := &model.Quote{
+		Quote:  input.Quote,
+		Author: input.Author,
+	}
+
+	response, err := json.Marshal(quote)
+	bufferResponse := bytes.NewBuffer(response)
+
+	request, err := http.NewRequest("POST", "http://0.0.0.0:8080/quote", bufferResponse)
 	request.Header.Set("x-api-key", "COCKTAILSAUCE")
 
 	if err != nil {
 		return nil, err
 	}
 
-	client := &http.Client{}
-	resp, _ := client.Do(request)
+	otherResponse, err := ioutil.ReadAll(request.Body)
+	json.Unmarshal(otherResponse, &quote)
 
-	quote := &model.Quote{
-		ID:     fmt.Sprintf("%v", uuid.NewV4()),
-		Quote:  input.Quote,
-		Author: input.Author,
-	}
-
-	return &quote, nil
+	return quote, nil
 }
 
 // Quote is the resolver for the quote field.
