@@ -8,7 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"github.com/gorrelljd21/quotes-starter/gqlgen/graph/generated"
@@ -23,6 +23,11 @@ func (r *mutationResolver) InsertQuote(ctx context.Context, input model.NewQuote
 	}
 
 	response, err := json.Marshal(&quote)
+
+	if err != nil {
+		return nil, err
+	}
+
 	bufferResponse := bytes.NewBuffer(response)
 
 	request, err := http.NewRequest("POST", "http://34.160.90.176:80/quote", bufferResponse)
@@ -36,7 +41,12 @@ func (r *mutationResolver) InsertQuote(ctx context.Context, input model.NewQuote
 	client := &http.Client{}
 	resp, _ := client.Do(request)
 
-	otherResponse, err := ioutil.ReadAll(resp.Body)
+	otherResponse, err := io.ReadAll(resp.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
 	json.Unmarshal(otherResponse, quote)
 
 	return quote, nil
@@ -54,7 +64,7 @@ func (r *mutationResolver) DeleteQuote(ctx context.Context, id string) (*model.D
 	client := &http.Client{}
 	resp, _ := client.Do(request)
 
-	_, noResponse := ioutil.ReadAll(resp.Body)
+	_, noResponse := io.ReadAll(resp.Body)
 
 	if noResponse != nil {
 		return nil, noResponse
@@ -82,7 +92,7 @@ func (r *queryResolver) Quote(ctx context.Context) (*model.Quote, error) {
 	client := &http.Client{}
 	resp, _ := client.Do(request)
 
-	requestBody, err := ioutil.ReadAll(resp.Body)
+	requestBody, err := io.ReadAll(resp.Body)
 
 	if err != nil {
 		return nil, err
@@ -109,7 +119,7 @@ func (r *queryResolver) QuoteID(ctx context.Context, id string) (*model.Quote, e
 	resp, _ := client.Do(request)
 
 	var quoteById *model.Quote
-	requestBody, err := ioutil.ReadAll(resp.Body)
+	requestBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
