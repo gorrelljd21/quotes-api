@@ -4,7 +4,9 @@ go 1.19
 
 require (
 	github.com/99designs/gqlgen v0.17.20
+	github.com/davecgh/go-spew v1.1.1
 	github.com/gin-gonic/gin v1.8.1
+	github.com/go-chi/chi v1.5.4
 	github.com/google/uuid v1.3.0
 	github.com/jackc/pgx/v4 v4.17.2
 	github.com/vektah/gqlparser/v2 v2.5.1
@@ -13,7 +15,6 @@ require (
 require (
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
-	github.com/go-chi/chi v1.5.4 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/go-playground/validator/v10 v10.10.0 // indirect

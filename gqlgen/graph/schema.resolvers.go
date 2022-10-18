@@ -30,8 +30,10 @@ func (r *mutationResolver) InsertQuote(ctx context.Context, input model.NewQuote
 
 	bufferResponse := bytes.NewBuffer(response)
 
+	stringKey := ctx.Value("API-Key").(string)
+
 	request, err := http.NewRequest("POST", "http://34.160.90.176:80/quote", bufferResponse)
-	request.Header.Set("X-Api-Key", "COCKTAILSAUCE")
+	request.Header.Set("X-Api-Key", stringKey)
 	// request.Header.Set("Content-Type", "application/json")
 
 	if err != nil {
@@ -54,8 +56,10 @@ func (r *mutationResolver) InsertQuote(ctx context.Context, input model.NewQuote
 
 // DeleteQuote is the resolver for the deleteQuote field.
 func (r *mutationResolver) DeleteQuote(ctx context.Context, id string) (*model.DeleteQuote, error) {
+	stringKey := ctx.Value("API-Key").(string)
+
 	request, err := http.NewRequest("DELETE", fmt.Sprintf("http://34.160.90.176:80/quote/%s", id), nil)
-	request.Header.Set("X-Api-Key", "COCKTAILSAUCE")
+	request.Header.Set("X-Api-Key", stringKey)
 
 	if err != nil {
 		return nil, err
@@ -82,8 +86,10 @@ func (r *mutationResolver) DeleteQuote(ctx context.Context, id string) (*model.D
 func (r *queryResolver) Quote(ctx context.Context) (*model.Quote, error) {
 	var randQuote *model.Quote
 
+	stringKey := ctx.Value("API-Key").(string)
+
 	request, err := http.NewRequest("GET", "http://34.160.90.176:80/quote", nil)
-	request.Header.Set("X-Api-Key", ctx.Value("API-Key"))
+	request.Header.Set("X-Api-Key", stringKey)
 
 	if err != nil {
 		return nil, err
@@ -108,8 +114,10 @@ func (r *queryResolver) Quote(ctx context.Context) (*model.Quote, error) {
 
 // QuoteID is the resolver for the quoteId field.
 func (r *queryResolver) QuoteID(ctx context.Context, id string) (*model.Quote, error) {
+	stringKey := ctx.Value("API-Key").(string)
+
 	request, err := http.NewRequest("GET", fmt.Sprintf("http://34.160.90.176:80/quote/%s", id), nil)
-	request.Header.Set("X-Api-Key", "COCKTAILSAUCE")
+	request.Header.Set("X-Api-Key", stringKey)
 
 	if err != nil {
 		return nil, err

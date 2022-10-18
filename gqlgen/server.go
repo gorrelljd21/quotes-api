@@ -42,7 +42,7 @@ func Middleware() func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 			// put it in context
-			ctx := context.WithValue(r.Context(), "API-Key", r.Header.Get("X-Api_key"))
+			ctx := context.WithValue(r.Context(), "API-Key", r.Header.Get("X-Api-key"))
 
 			// and call the next with our new context
 			r = r.WithContext(ctx)
