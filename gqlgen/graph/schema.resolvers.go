@@ -83,7 +83,7 @@ func (r *queryResolver) Quote(ctx context.Context) (*model.Quote, error) {
 	var randQuote *model.Quote
 
 	request, err := http.NewRequest("GET", "http://34.160.90.176:80/quote", nil)
-	request.Header.Set("X-Api-Key", "COCKTAILSAUCE")
+	request.Header.Set("X-Api-Key", ctx.Value("API-Key"))
 
 	if err != nil {
 		return nil, err
