@@ -26,7 +26,7 @@ func (r *mutationResolver) InsertQuote(ctx context.Context, input model.NewQuote
 	response, err := json.Marshal(&quote)
 	bufferResponse := bytes.NewBuffer(response)
 
-	request, err := http.NewRequest("POST", "http://0.0.0.0:8080/quote", bufferResponse)
+	request, err := http.NewRequest("POST", "http://34.160.90.176:80/quote", bufferResponse)
 	request.Header.Set("X-Api-Key", "COCKTAILSAUCE")
 	// request.Header.Set("Content-Type", "application/json")
 
@@ -47,7 +47,7 @@ func (r *mutationResolver) InsertQuote(ctx context.Context, input model.NewQuote
 func (r *queryResolver) Quote(ctx context.Context) (*model.Quote, error) {
 	var randQuote *model.Quote
 
-	request, err := http.NewRequest("GET", "http://0.0.0.0:8080/quote", nil)
+	request, err := http.NewRequest("GET", "http://34.160.90.176:80/quote", nil)
 	request.Header.Set("x-api-key", "COCKTAILSAUCE")
 
 	if err != nil {
@@ -73,7 +73,7 @@ func (r *queryResolver) Quote(ctx context.Context) (*model.Quote, error) {
 
 // QuoteID is the resolver for the quoteId field.
 func (r *queryResolver) QuoteID(ctx context.Context, id string) (*model.Quote, error) {
-	request, err := http.NewRequest("GET", fmt.Sprintf("http://0.0.0.0:8080/quote/%s", id), nil)
+	request, err := http.NewRequest("GET", fmt.Sprintf("http://34.160.90.176:80/quote/%s", id), nil)
 	request.Header.Set("x-api-key", "COCKTAILSAUCE")
 
 	if err != nil {
