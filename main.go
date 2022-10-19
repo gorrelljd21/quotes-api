@@ -81,16 +81,21 @@ func manageHeader(c *gin.Context) bool {
 }
 
 func deleteQuote(c *gin.Context) {
-	id := c.Param("id")
-	row := db.QueryRow(fmt.Sprintf("delete from quotes where id = '%s'", id))
-	q := &quote{}
-	err := row.Scan(&q.ID, &q.Quote, &q.Author)
+	if manageHeader(c) {
+		id := c.Param("id")
+		row := db.QueryRow(fmt.Sprintf("delete from quotes where id = '%s'", id))
 
-	if err != nil {
-		log.Println(err)
+		q := &quote{}
+		err := row.Scan(&q.ID, &q.Quote, &q.Author)
+
+		if err != nil {
+			log.Println(err)
+		}
+
+		c.JSON(http.StatusNoContent, q)
+	} else if !manageHeader(c) {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "unauthorized"})
 	}
-
-	c.JSON(http.StatusNoContent, q)
 }
 
 func getRandomQuoteSQL(c *gin.Context) {

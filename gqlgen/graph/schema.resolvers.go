@@ -7,10 +7,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/gorrelljd21/quotes-starter/gqlgen/graph/generated"
 	"github.com/gorrelljd21/quotes-starter/gqlgen/graph/model"
 )
@@ -30,9 +32,10 @@ func (r *mutationResolver) InsertQuote(ctx context.Context, input model.NewQuote
 
 	bufferResponse := bytes.NewBuffer(response)
 
+	stringKey := ctx.Value("API-Key").(string)
+
 	request, err := http.NewRequest("POST", "http://34.160.90.176:80/quote", bufferResponse)
-	request.Header.Set("X-Api-Key", "COCKTAILSAUCE")
-	// request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("X-Api-Key", stringKey)
 
 	if err != nil {
 		return nil, err
@@ -40,6 +43,17 @@ func (r *mutationResolver) InsertQuote(ctx context.Context, input model.NewQuote
 
 	client := &http.Client{}
 	resp, _ := client.Do(request)
+
+	switch resp.StatusCode {
+	case 404:
+		return nil, errors.New("invalid input")
+	case 401:
+		return nil, errors.New("unauthorized")
+	}
+
+	if len(input.Author) < 3 || len(input.Quote) < 3 {
+		return nil, errors.New("invalid input")
+	}
 
 	otherResponse, err := io.ReadAll(resp.Body)
 
@@ -54,15 +68,36 @@ func (r *mutationResolver) InsertQuote(ctx context.Context, input model.NewQuote
 
 // DeleteQuote is the resolver for the deleteQuote field.
 func (r *mutationResolver) DeleteQuote(ctx context.Context, id string) (*model.DeleteQuote, error) {
+	stringKey := ctx.Value("API-Key").(string)
+
 	request, err := http.NewRequest("DELETE", fmt.Sprintf("http://34.160.90.176:80/quote/%s", id), nil)
-	request.Header.Set("X-Api-Key", "COCKTAILSAUCE")
+	request.Header.Set("X-Api-Key", stringKey)
 
 	if err != nil {
 		return nil, err
 	}
 
+	quote, err := r.Query().QuoteID(ctx, id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if quote.ID != id {
+		deleteQuoteWrong := &model.DeleteQuote{
+			Code:    400,
+			Message: "Invalid ID",
+		}
+		return deleteQuoteWrong, nil
+	}
+
 	client := &http.Client{}
 	resp, _ := client.Do(request)
+
+	switch resp.StatusCode {
+	case 401:
+		return nil, errors.New("unauthorized")
+	}
 
 	_, noResponse := io.ReadAll(resp.Body)
 
@@ -74,7 +109,6 @@ func (r *mutationResolver) DeleteQuote(ctx context.Context, id string) (*model.D
 		Code:    204,
 		Message: "Successfully Deleted",
 	}
-
 	return deleteQuote, nil
 }
 
@@ -82,8 +116,11 @@ func (r *mutationResolver) DeleteQuote(ctx context.Context, id string) (*model.D
 func (r *queryResolver) Quote(ctx context.Context) (*model.Quote, error) {
 	var randQuote *model.Quote
 
+	stringKey := ctx.Value("API-Key").(string)
+
 	request, err := http.NewRequest("GET", "http://34.160.90.176:80/quote", nil)
-	request.Header.Set("X-Api-Key", "COCKTAILSAUCE")
+	request.Header.Set("X-Api-Key", stringKey)
+	spew.Dump(request)
 
 	if err != nil {
 		return nil, err
@@ -91,6 +128,12 @@ func (r *queryResolver) Quote(ctx context.Context) (*model.Quote, error) {
 
 	client := &http.Client{}
 	resp, _ := client.Do(request)
+
+	spew.Dump(resp)
+	switch resp.StatusCode {
+	case 401:
+		return nil, errors.New("unauthorized")
+	}
 
 	requestBody, err := io.ReadAll(resp.Body)
 
@@ -108,8 +151,10 @@ func (r *queryResolver) Quote(ctx context.Context) (*model.Quote, error) {
 
 // QuoteID is the resolver for the quoteId field.
 func (r *queryResolver) QuoteID(ctx context.Context, id string) (*model.Quote, error) {
+	stringKey := ctx.Value("API-Key").(string)
+
 	request, err := http.NewRequest("GET", fmt.Sprintf("http://34.160.90.176:80/quote/%s", id), nil)
-	request.Header.Set("X-Api-Key", "COCKTAILSAUCE")
+	request.Header.Set("X-Api-Key", stringKey)
 
 	if err != nil {
 		return nil, err
@@ -117,6 +162,13 @@ func (r *queryResolver) QuoteID(ctx context.Context, id string) (*model.Quote, e
 
 	client := &http.Client{}
 	resp, _ := client.Do(request)
+
+	switch resp.StatusCode {
+	case 404:
+		return nil, errors.New("id not found")
+	case 401:
+		return nil, errors.New("unauthorized")
+	}
 
 	var quoteById *model.Quote
 	requestBody, err := io.ReadAll(resp.Body)
@@ -130,6 +182,7 @@ func (r *queryResolver) QuoteID(ctx context.Context, id string) (*model.Quote, e
 	}
 
 	return quoteById, nil
+
 }
 
 // Mutation returns generated.MutationResolver implementation.
