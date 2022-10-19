@@ -17,28 +17,8 @@ import (
 	"github.com/gorrelljd21/quotes-starter/gqlgen/graph/model"
 )
 
-// authenticate is the helper function to ensure all actions are authenticated
-// func authenticate(ctx context.Context) bool {
-// 	stringKey, exists := ctx.Value("API-Key").(string)
-
-// 	request, err := http.NewRequest("POST", "http://34.160.90.176:80/quote", nil)
-// 	request.Header.Set("X-Api-Key", stringKey)
-
-// 	if err != nil {
-// 		return false
-// 	}
-
-// 	if exists {
-// 		if  != stringKey {
-// 			return true
-// 		}
-// 	}
-// 	return false
-// }
-
 // AddQuote is the resolver for the addQuote field
 func (r *mutationResolver) InsertQuote(ctx context.Context, input model.NewQuote) (*model.Quote, error) {
-	// if authenticate(ctx) {
 	quote := &model.Quote{
 		Quote:  input.Quote,
 		Author: input.Author,
@@ -65,6 +45,8 @@ func (r *mutationResolver) InsertQuote(ctx context.Context, input model.NewQuote
 	resp, _ := client.Do(request)
 
 	switch resp.StatusCode {
+	case 404:
+		return nil, errors.New("invalid input")
 	case 401:
 		return nil, errors.New("unauthorized")
 	}
@@ -82,8 +64,6 @@ func (r *mutationResolver) InsertQuote(ctx context.Context, input model.NewQuote
 	json.Unmarshal(otherResponse, quote)
 
 	return quote, nil
-	// }
-	// return nil, errors.New("unauthorized")
 }
 
 // DeleteQuote is the resolver for the deleteQuote field.
@@ -92,7 +72,6 @@ func (r *mutationResolver) DeleteQuote(ctx context.Context, id string) (*model.D
 
 	request, err := http.NewRequest("DELETE", fmt.Sprintf("http://34.160.90.176:80/quote/%s", id), nil)
 	request.Header.Set("X-Api-Key", stringKey)
-	spew.Dump(request)
 
 	if err != nil {
 		return nil, err
@@ -104,7 +83,6 @@ func (r *mutationResolver) DeleteQuote(ctx context.Context, id string) (*model.D
 		return nil, err
 	}
 
-	spew.Dump(quote)
 	if quote.ID != id {
 		deleteQuoteWrong := &model.DeleteQuote{
 			Code:    400,
