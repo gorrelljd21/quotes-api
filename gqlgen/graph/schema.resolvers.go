@@ -16,8 +16,28 @@ import (
 	"github.com/gorrelljd21/quotes-starter/gqlgen/graph/model"
 )
 
+// authenticate is the helper function to ensure all actions are authenticated
+// func authenticate(ctx context.Context) bool {
+// 	stringKey, exists := ctx.Value("API-Key").(string)
+
+// 	request, err := http.NewRequest("POST", "http://34.160.90.176:80/quote", nil)
+// 	request.Header.Set("X-Api-Key", stringKey)
+
+// 	if err != nil {
+// 		return false
+// 	}
+
+// 	if exists {
+// 		if  != stringKey {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }
+
 // AddQuote is the resolver for the addQuote field
 func (r *mutationResolver) InsertQuote(ctx context.Context, input model.NewQuote) (*model.Quote, error) {
+	// if authenticate(ctx) {
 	quote := &model.Quote{
 		Quote:  input.Quote,
 		Author: input.Author,
@@ -35,18 +55,22 @@ func (r *mutationResolver) InsertQuote(ctx context.Context, input model.NewQuote
 
 	request, err := http.NewRequest("POST", "http://34.160.90.176:80/quote", bufferResponse)
 	request.Header.Set("X-Api-Key", stringKey)
-	// request.Header.Set("Content-Type", "application/json")
 
 	if err != nil {
 		return nil, err
 	}
 
+	client := &http.Client{}
+	resp, _ := client.Do(request)
+
+	switch resp.StatusCode {
+	case 401:
+		return nil, errors.New("unauthorized")
+	}
+
 	if len(input.Author) < 3 || len(input.Quote) < 3 {
 		return nil, errors.New("invalid input")
 	}
-
-	client := &http.Client{}
-	resp, _ := client.Do(request)
 
 	otherResponse, err := io.ReadAll(resp.Body)
 
@@ -57,6 +81,8 @@ func (r *mutationResolver) InsertQuote(ctx context.Context, input model.NewQuote
 	json.Unmarshal(otherResponse, quote)
 
 	return quote, nil
+	// }
+	// return nil, errors.New("unauthorized")
 }
 
 // DeleteQuote is the resolver for the deleteQuote field.
@@ -82,6 +108,11 @@ func (r *mutationResolver) DeleteQuote(ctx context.Context, id string) (*model.D
 
 	client := &http.Client{}
 	resp, _ := client.Do(request)
+
+	switch resp.StatusCode {
+	case 401:
+		return nil, errors.New("unauthorized")
+	}
 
 	_, noResponse := io.ReadAll(resp.Body)
 
@@ -111,6 +142,11 @@ func (r *queryResolver) Quote(ctx context.Context) (*model.Quote, error) {
 
 	client := &http.Client{}
 	resp, _ := client.Do(request)
+
+	switch resp.StatusCode {
+	case 401:
+		return nil, errors.New("unauthorized")
+	}
 
 	requestBody, err := io.ReadAll(resp.Body)
 
@@ -143,6 +179,8 @@ func (r *queryResolver) QuoteID(ctx context.Context, id string) (*model.Quote, e
 	switch resp.StatusCode {
 	case 404:
 		return nil, errors.New("id not found")
+	case 401:
+		return nil, errors.New("unauthorized")
 	}
 
 	var quoteById *model.Quote
