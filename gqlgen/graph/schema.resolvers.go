@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -40,6 +41,10 @@ func (r *mutationResolver) InsertQuote(ctx context.Context, input model.NewQuote
 		return nil, err
 	}
 
+	if len(input.Author) < 3 || len(input.Quote) < 3 {
+		return nil, errors.New("invalid input")
+	}
+
 	client := &http.Client{}
 	resp, _ := client.Do(request)
 
@@ -65,6 +70,16 @@ func (r *mutationResolver) DeleteQuote(ctx context.Context, id string) (*model.D
 		return nil, err
 	}
 
+	quote, _ := r.Query().QuoteID(ctx, id)
+
+	if quote.ID != id {
+		deleteQuoteWrong := &model.DeleteQuote{
+			Code:    400,
+			Message: "Invalid ID",
+		}
+		return deleteQuoteWrong, nil
+	}
+
 	client := &http.Client{}
 	resp, _ := client.Do(request)
 
@@ -78,7 +93,6 @@ func (r *mutationResolver) DeleteQuote(ctx context.Context, id string) (*model.D
 		Code:    204,
 		Message: "Successfully Deleted",
 	}
-
 	return deleteQuote, nil
 }
 
@@ -126,6 +140,11 @@ func (r *queryResolver) QuoteID(ctx context.Context, id string) (*model.Quote, e
 	client := &http.Client{}
 	resp, _ := client.Do(request)
 
+	switch resp.StatusCode {
+	case 404:
+		return nil, errors.New("id not found")
+	}
+
 	var quoteById *model.Quote
 	requestBody, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -138,6 +157,7 @@ func (r *queryResolver) QuoteID(ctx context.Context, id string) (*model.Quote, e
 	}
 
 	return quoteById, nil
+
 }
 
 // Mutation returns generated.MutationResolver implementation.

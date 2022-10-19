@@ -81,8 +81,10 @@ func manageHeader(c *gin.Context) bool {
 }
 
 func deleteQuote(c *gin.Context) {
+
 	id := c.Param("id")
 	row := db.QueryRow(fmt.Sprintf("delete from quotes where id = '%s'", id))
+
 	q := &quote{}
 	err := row.Scan(&q.ID, &q.Quote, &q.Author)
 
