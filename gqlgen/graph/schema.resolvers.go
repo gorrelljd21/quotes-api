@@ -12,7 +12,6 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/gorrelljd21/quotes-starter/gqlgen/graph/generated"
 	"github.com/gorrelljd21/quotes-starter/gqlgen/graph/model"
 )
@@ -95,6 +94,8 @@ func (r *mutationResolver) DeleteQuote(ctx context.Context, id string) (*model.D
 	resp, _ := client.Do(request)
 
 	switch resp.StatusCode {
+	case 404:
+		return nil, errors.New("id not found")
 	case 401:
 		return nil, errors.New("unauthorized")
 	}
@@ -120,7 +121,6 @@ func (r *queryResolver) Quote(ctx context.Context) (*model.Quote, error) {
 
 	request, err := http.NewRequest("GET", "http://34.160.90.176:80/quote", nil)
 	request.Header.Set("X-Api-Key", stringKey)
-	spew.Dump(request)
 
 	if err != nil {
 		return nil, err
@@ -129,7 +129,6 @@ func (r *queryResolver) Quote(ctx context.Context) (*model.Quote, error) {
 	client := &http.Client{}
 	resp, _ := client.Do(request)
 
-	spew.Dump(resp)
 	switch resp.StatusCode {
 	case 401:
 		return nil, errors.New("unauthorized")

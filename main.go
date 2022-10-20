@@ -92,7 +92,13 @@ func deleteQuote(c *gin.Context) {
 			log.Println(err)
 		}
 
-		c.JSON(http.StatusNoContent, q)
+		if q.ID == "" {
+			c.JSON(http.StatusNotFound, gin.H{"message": "invalid ID"})
+			return
+		} else {
+			c.JSON(http.StatusNoContent, q)
+		}
+
 	} else if !manageHeader(c) {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "unauthorized"})
 	}
