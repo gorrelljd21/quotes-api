@@ -67,8 +67,16 @@ func (r *mutationResolver) InsertQuote(ctx context.Context, input model.NewQuote
 
 // DeleteQuote is the resolver for the deleteQuote field.
 func (r *mutationResolver) DeleteQuote(ctx context.Context, id string) (*model.DeleteQuote, error) {
-	stringKey := ctx.Value("API-Key").(string)
 
+	//check if the quote exists
+	_, err := r.Query().QuoteID(ctx, id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	//form request to REST api
+	stringKey := ctx.Value("API-Key").(string)
 	request, err := http.NewRequest("DELETE", fmt.Sprintf("http://34.160.90.176:80/quote/%s", id), nil)
 	request.Header.Set("X-Api-Key", stringKey)
 
@@ -76,40 +84,26 @@ func (r *mutationResolver) DeleteQuote(ctx context.Context, id string) (*model.D
 		return nil, err
 	}
 
-	quote, err := r.Query().QuoteID(ctx, id)
+	//deleting the id (firing off the request)
+	client := &http.Client{}
+	resp, err := client.Do(request)
 
 	if err != nil {
 		return nil, err
 	}
 
-	if quote.ID != id {
-		deleteQuoteWrong := &model.DeleteQuote{
-			Code:    400,
-			Message: "Invalid ID",
-		}
-		return deleteQuoteWrong, nil
+	// shows success message
+	deleteQuote := &model.DeleteQuote{
+		Code:    resp.StatusCode,
+		Message: "successfully deleted",
 	}
 
-	client := &http.Client{}
-	resp, _ := client.Do(request)
-
+	//checks for unauthorized
 	switch resp.StatusCode {
-	case 404:
-		return nil, errors.New("id not found")
 	case 401:
 		return nil, errors.New("unauthorized")
 	}
 
-	_, noResponse := io.ReadAll(resp.Body)
-
-	if noResponse != nil {
-		return nil, noResponse
-	}
-
-	deleteQuote := &model.DeleteQuote{
-		Code:    204,
-		Message: "Successfully Deleted",
-	}
 	return deleteQuote, nil
 }
 
