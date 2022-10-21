@@ -76,6 +76,11 @@ func (r *mutationResolver) DeleteQuote(ctx context.Context, id string) (*model.D
 		return nil, err
 	}
 
+	deleteQuote := &model.DeleteQuote{
+		Code:    204,
+		Message: "Successfully Deleted",
+	}
+
 	quote, err := r.Query().QuoteID(ctx, id)
 
 	if err != nil {
@@ -85,7 +90,7 @@ func (r *mutationResolver) DeleteQuote(ctx context.Context, id string) (*model.D
 	if quote.ID != id {
 		deleteQuoteWrong := &model.DeleteQuote{
 			Code:    400,
-			Message: "Invalid ID",
+			Message: "invalid id",
 		}
 		return deleteQuoteWrong, nil
 	}
@@ -94,8 +99,6 @@ func (r *mutationResolver) DeleteQuote(ctx context.Context, id string) (*model.D
 	resp, _ := client.Do(request)
 
 	switch resp.StatusCode {
-	case 404:
-		return nil, errors.New("id not found")
 	case 401:
 		return nil, errors.New("unauthorized")
 	}
@@ -106,10 +109,6 @@ func (r *mutationResolver) DeleteQuote(ctx context.Context, id string) (*model.D
 		return nil, noResponse
 	}
 
-	deleteQuote := &model.DeleteQuote{
-		Code:    204,
-		Message: "Successfully Deleted",
-	}
 	return deleteQuote, nil
 }
 
